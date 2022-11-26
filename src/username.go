@@ -27,16 +27,16 @@ func main() {
 
 	if len(os.Args) == 1 {
 
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		username(discord, scanner.Text());
-	}
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			username(discord, scanner.Text());
+		}
 
-	err = scanner.Err()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "bufio.Scanner.Scan: %s\n", err.Error())
-		os.Exit(1)
-	}
+		err = scanner.Err()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "bufio.Scanner.Scan: %s\n", err.Error())
+			os.Exit(1)
+		}
 
 	} else {
 		for i := 1; i < len(os.Args); i ++ {
