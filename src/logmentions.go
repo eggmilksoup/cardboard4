@@ -11,18 +11,39 @@ func main() {
 		fmt.Fprintf(os.Stderr, "usage: %s delay \n", os.Args[0])
 		os.Exit(1)
 	}
-	discord, _ := discordgo.New("Bot " + os.Getenv("key"))
+
+	discord, err := discordgo.New("Bot " + os.Getenv("key"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "discordgo.New: %s\n", err.Error())
+		os.Exit(1)
+	}
+
 	discord.Open()
 	discord.UpdateGameStatus(0, "always learning, ever growing")
 	discord.AddHandler( func(discord *discordgo.Session, event *discordgo.MessageCreate) {
 		for _, usr := range event.Message.Mentions {
-			me, _ := discord.User("@me")
+
+			me, err := discord.User("@me")
+			if err != nil {
+			        fmt.Fprintf(os.Stderr, "discordgo.Session.User: %s\n", err.Error())
+				os.Exit(1)
+			}
+
 			if usr.ID == me.ID {
-				fmt.Printf("%s:%s:%s\n", event.Message.ChannelID, event.Message.ID, event.Message.Content)
+				fmt.Printf("%s:%s:%s\n",
+					event.Message.ChannelID,
+					event.Message.ID,
+					event.Message.Content)
 			}
 		}
 	})
-	delay, _ := time.ParseDuration(os.Args[1])
+
+	delay, err := time.ParseDuration(os.Args[1])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "time.ParseDuration: %s\n", err.Error())
+		os.Exit(1)
+	}
+
 	time.Sleep(delay)
 	discord.UpdateGameStatus(0, "collecting eldritch data")
 }

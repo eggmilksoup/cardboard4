@@ -10,7 +10,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "usage: %s nickname\n", os.Args[0])
 		os.Exit(1)
 	}
-	discord, _ := discordgo.New("Bot " + os.Getenv("key"))
-	discord.UpdateGameStatus(0, "")
+	discord, err := discordgo.New("Bot " + os.Getenv("key"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "discordgo.New: %s\n", err.Error())
+	}
 	discord.GuildMemberNickname("478329250349449216", "@me", os.Args[1])
 }

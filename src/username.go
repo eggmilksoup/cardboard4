@@ -8,39 +8,39 @@ import "os"
 
 func username(discord *discordgo.Session, id string) {
 
-    usr, err := discord.User(id)
-    if err != nil {
-	fmt.Fprintf(os.Stderr, "discordgo.Session.User: %s\n", err.Error())
-	os.Exit(1);
-    }
+	usr, err := discord.User(id)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "discordgo.Session.User: %s\n", err.Error())
+		os.Exit(1);
+	}
 
-    fmt.Println(usr.Username)
+	fmt.Println(usr.Username)
 }
 
 func main() {
 
-    discord, err := discordgo.New("Bot " + os.Getenv("key"))
-    if err != nil {
-	fmt.Fprintf(os.Stderr, "discordgo.New: %s", err.Error())
-	os.Exit(1)
-    }
+	discord, err := discordgo.New("Bot " + os.Getenv("key"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "discordgo.New: %s\n", err.Error())
+		os.Exit(1)
+	}
 
-    if len(os.Args) == 1 {
+	if len(os.Args) == 1 {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-	    username(discord, scanner.Text());
+		username(discord, scanner.Text());
 	}
 
 	err = scanner.Err()
 	if err != nil {
-	    fmt.Fprintf(os.Stderr, "bufio.Scanner.Err: %s", err.Error())
-	    os.Exit(1)
+		fmt.Fprintf(os.Stderr, "bufio.Scanner.Scan: %s\n", err.Error())
+		os.Exit(1)
 	}
 
-    } else {
-	for i := 1; i < len(os.Args); i ++ {
-	    username(discord, os.Args[i])
+	} else {
+		for i := 1; i < len(os.Args); i ++ {
+			username(discord, os.Args[i])
+		}
 	}
-    }
 }
