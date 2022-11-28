@@ -18,7 +18,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "discordgo.New: %s\n", err.Error())
 		os.Exit(1)
 	}
-	
+
+	discord.Open()
+	discord.UpdateGameStatus(0, "")
+
 	discord.AddHandler( func(discord *discordgo.Session, event *discordgo.MessageCreate) {
 		// check whether we are in a DM
 		if event.Message.GuildID == "" {
