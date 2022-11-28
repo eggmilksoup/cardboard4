@@ -1,0 +1,150 @@
+#!/bin/sh
+
+# listen.sh.in version 4.0.0
+
+writercp() {
+	export channel=$(printf "$line" | cut -f 1 -d :)
+    author=$(printf "$line" | cut -f 2 -d :)
+	title=""
+
+    msg "What is the RCP title?"
+    logdms 3h $admin | while read line
+    do
+	    case "$(printf "$line" | cut -f 2 -d :)" in
+			"$author")
+				title="$(printf "$line" | cut -f 4 -d :)"
+				msg "You chose \"$title\" as your title.  After you create" \
+					"your RCP you can always start over by saying \"begin rcp\""
+				;;
+			*)
+				channel=$(printf "$line" | cut -f 1 -d :) msg \
+					"The RCP is currently being created by $(username \
+					$author). Contact them if you are having issues."
+				;;
+		esac
+		[ -n "$title" ] && break
+	done
+
+	[ -z "$title" ] &&
+		msg "Waiting for a title timed out.  Returning to the main loop." &&
+		return
+
+	echo "$title" > data/rcp-title
+
+	msg "The remaining messages you send will be formatted along with the" \
+		"title into an official RCP poll.  Say \"end rcp\" to complete your" \
+		"rcp."
+
+	finished=false
+	logdms 3h $admin | while read line
+	do
+		case "$(printf "$line" | cut -f 2 -d :)" in
+			"$author")
+				if [ "$(printf "$line" | cut -f 4 -d :)" = "end rcp" ]
+				then
+					finished=true
+					msg "RCP recorded."
+					echo $channel > data/rcp-draftchan
+				else
+					printf "$line" | cut -f 3 -d : >> data/rcp-messages
+				fi
+				;;
+			*)
+				channel=$(printf "$line" | cut -f 1 -d :) msg \
+					"The RCP is currently being created by $(username \
+					$author).  Contact them if you are having issues."
+				;;
+		esac
+		$finished && break
+	done
+	$finished || msg "Waiting for \"end rcp\" timed out.  Returning to the" \
+		"main loop."
+}
+
+sendrcp=false
+while ! $sendrcp
+do
+	logdms 48h $admin | while read line
+	do
+		case "$(printf "$line" | cut -f 4 -d :)" in
+			"begin rcp")
+				line="$line" writercp
+				;;
+			"end rcp")
+				channel=$(printf "$line" | cut -f 1 -d :) msg \
+					"You are not currently writing an RCP."
+				;;
+			"send rcp")
+				if [ -f data/rcp-draftchan ]
+				then sendrcp=true
+				else channel=$(printf "$line" | cut -f 1 -d :) msg \
+					"No RCP has been written yet."
+				fi
+				;;
+			"change author")
+				export channel=$(printf "$line" | cut -f 1 -d :)
+				msg "Which player would you like to be the author for RCP" \
+					"$(cat data/rcp)?"
+				logdms 20m $(printf "$line" | cut -f 2 -d :) | while read line
+				do
+					end=true
+					case $line in
+						cancel)
+							msg "author change canceled"
+							;;
+						*avian*|*andrew*|*starbound*|*sky*)
+							echo avian > data/author
+							msg "Setting author to Starbound Avian."
+							;;
+						*card*|*ash*|*dyna*|*skel*)
+							echo cardinal > data/author
+							msg "Setting author to The Skeletal Cardinal."
+							;;
+						*csh*|*erik*|*meow*|*dung*)
+							echo chsainyr > data/author
+							msg "Setting author to Cshainyr."
+							;;
+						*cart*|*ghos*|*:ems|*egg*|*milk*|*soup*|*amy*|*eve*|*david\ c*)
+							echo ghost > data/author
+							msg "Setting author to The Carton Ghost."
+							;;
+						*hier*|*juan*|*nax*)
+							echo hieratum > data/author
+							msg "Setting author to Hieratum."
+							;;
+						*maymun*|*willy*|*rip*|*r.i.p.*|*canon*)
+							echo maymun > data/author
+							msg "Setting author to Maymun."
+							;;
+						*olrora*|*einz*|*cal*)
+							echo olrora > data/author
+							msg "Setting author to Olrora."
+							;;
+						*qitiano*|*draolay*|*deb*|*dab*|*master*)
+							echo qitiano > data/author
+							msg "Setting author to Draolay Qitiano."
+							;;
+						*x\'*|*xa*|*chris*|*kris*)
+							echo x_and > data/author
+							msg "Setting author to X'and."
+							;;
+						*yn*|*lup*|*david\ g*)
+							echo yngling > data/author
+							msg "Setting author to Lupin Yngling."
+							;;
+						*)
+							msg "Ambiguous author name not accepted.  Send" \
+								"\"cancel\" to cancel."
+							end=false
+							;;
+					esac
+					$end && break
+				done
+				;;
+		esac
+		$sendrcp && break
+	done
+	$sendrcp || channel=$announcements msg \
+		"This is the 48-hour reminder that it is time for $($mention $(printf \
+		'$' && cat data/author)) to propose rcp $(cat data/rcp)."
+done
